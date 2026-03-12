@@ -139,7 +139,7 @@ class UploadLogsAction extends Action
                     }
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Silently fail, fall back to default
         }
 
@@ -162,7 +162,7 @@ class UploadLogsAction extends Action
                 ->json();
 
             return $response['success'] ?? false;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
     }

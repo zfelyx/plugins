@@ -19,6 +19,7 @@ use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Str;
 use spolny\ArmaReforgerWorkshop\Facades\ArmaReforgerWorkshop;
 
 class BrowseWorkshopPage extends Page implements HasTable
@@ -115,7 +116,7 @@ class BrowseWorkshopPage extends Page implements HasTable
                     ->label(trans('arma-reforger-workshop::arma-reforger-workshop.labels.mod'))
                     ->weight('bold')
                     ->searchable()
-                    ->description(fn (array $record) => \Illuminate\Support\Str::limit($record['summary'] ?? '', 80)),
+                    ->description(fn (array $record) => Str::limit($record['summary'] ?? '', 80)),
                 TextColumn::make('author')
                     ->label(trans('arma-reforger-workshop::arma-reforger-workshop.labels.author'))
                     ->icon('tabler-user')
