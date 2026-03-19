@@ -4,15 +4,20 @@ namespace Boy132\UserCreatableServers\Filament\Components\Actions;
 
 use App\Exceptions\Service\Deployment\NoViableAllocationException;
 use App\Exceptions\Service\Deployment\NoViableNodeException;
+use App\Filament\Components\Forms\Fields\StartupVariable;
 use App\Filament\Server\Pages\Console;
 use App\Models\Egg;
 use App\Services\Servers\RandomWordService;
 use Boy132\UserCreatableServers\Models\UserResourceLimits;
 use Exception;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+use Illuminate\Support\Arr;
 
 class CreateServerAction extends Action
 {
@@ -54,7 +59,23 @@ class CreateServerAction extends Action
                     ->options(fn () => Egg::all()->mapWithKeys(fn (Egg $egg) => [$egg->id => $egg->name]))
                     ->required()
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->live()
+                    ->afterStateUpdated(function ($state, Set $set) {
+                        $egg = Egg::find($state);
+
+                        $variables = $egg->variables ?? [];
+                        $serverVariables = collect();
+                        foreach ($variables as $variable) {
+                            $serverVariables->add($variable->toArray());
+                        }
+
+                        $set('variables', $serverVariables->sortBy(['sort'])->all());
+                        for ($i = 0; $i < $serverVariables->count(); $i++) {
+                            $set("variables.$i.variable_value", $serverVariables[$i]['default_value']);
+                            $set("variables.$i.variable_id", $serverVariables[$i]['id']);
+                        }
+                    }),
                 TextInput::make('cpu')
                     ->label(trans('user-creatable-servers::strings.cpu'))
                     ->required()
@@ -76,6 +97,20 @@ class CreateServerAction extends Action
                     ->minValue($userResourceLimits->disk > 0 ? 1 : 0)
                     ->maxValue($userResourceLimits->getDiskLeft())
                     ->suffix(config('panel.use_binary_prefix') ? 'MiB' : 'MB'),
+                Repeater::make('variables')
+                    ->label(trans('user-creatable-servers::strings.variables'))
+                    ->hidden(fn (Get $get) => !$get('egg_id'))
+                    ->grid(2)
+                    ->reorderable(false)
+                    ->addable(false)
+                    ->deletable(false)
+                    ->default([])
+                    ->hidden(fn ($state) => empty($state))
+                    ->schema([
+                        StartupVariable::make('variable_value')
+                            ->fromForm()
+                            ->disabled(false),
+                    ]),
             ];
         });
 
@@ -84,7 +119,7 @@ class CreateServerAction extends Action
                 /** @var UserResourceLimits $userResourceLimits */
                 $userResourceLimits = UserResourceLimits::where('user_id', auth()->user()->id)->firstOrFail();
 
-                if ($server = $userResourceLimits->createServer($data['name'], $data['egg_id'], $data['cpu'], $data['memory'], $data['disk'])) {
+                if ($server = $userResourceLimits->createServer($data['name'], $data['egg_id'], $data['cpu'], $data['memory'], $data['disk'], Arr::mapWithKeys($data['variables'], fn ($value) => [$value['env_variable'] => $value['variable_value']]))) {
                     redirect(Console::getUrl(panel: 'server', tenant: $server));
                 }
             } catch (Exception $exception) {

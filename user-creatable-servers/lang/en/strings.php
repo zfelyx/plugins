@@ -13,6 +13,7 @@ return [
     'name' => 'Server Name',
     'egg' => 'Egg',
     'left' => 'left',
+    'variables' => 'Startup variables',
 
     'modals' => [
         'delete_server_confirm' => 'Are you sure you want to delete this server?',
