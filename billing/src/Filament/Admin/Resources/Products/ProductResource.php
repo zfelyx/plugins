@@ -6,6 +6,7 @@ use Boy132\Billing\Filament\Admin\Resources\Products\Pages\CreateProduct;
 use Boy132\Billing\Filament\Admin\Resources\Products\Pages\EditProduct;
 use Boy132\Billing\Filament\Admin\Resources\Products\Pages\ListProducts;
 use Boy132\Billing\Models\Product;
+use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
@@ -143,6 +144,10 @@ class ProductResource extends Resource
             ->recordActions([
                 EditAction::make(),
                 DeleteAction::make(),
+            ])
+            ->toolbarActions([
+                CreateAction::make()
+                    ->createAnother(false),
             ])
             ->emptyStateHeading('No Products')
             ->emptyStateDescription('')

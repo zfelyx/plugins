@@ -32,7 +32,7 @@ class ProductWidget extends Widget implements HasActions, HasSchemas
         $actions = [];
 
         foreach ($this->product->prices as $price) {
-            $actions[] = Action::make(str_slug($price->name))
+            $actions[] = Action::make('exclude_' . str_slug($price->name))
                 ->label($price->getLabel())
                 ->action(function () use ($price) {
                     $price->sync();
