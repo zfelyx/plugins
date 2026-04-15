@@ -51,8 +51,8 @@ class GameQuery extends Model
         if ($this->query_port_variable) {
             $variableValue = $server->variables()->where('env_variable', $this->query_port_variable)->first()?->server_value;
 
-            if ($variableValue && is_int($variableValue)) {
-                $port = $variableValue;
+            if ($variableValue && is_numeric($variableValue)) {
+                $port = (int) $variableValue;
             }
         }
 
